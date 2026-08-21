@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outback Sams 7-Grid Cryptanalysis Challenge</title>
+    <style>
+        :root {
+            --bg-color: #090d16;
+            --card-bg: #111827;
+            --accent: #22c55e;
+            --danger: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: #1f2937;
+            --terminal-bg: #030712;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 12px;
+        }
+
+        .header h1 {
+            color: var(--accent);
+            margin: 0 0 8px 0;
+            letter-spacing: 1px;
+        }
+
+        .site-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s ease, text-decoration 0.2s ease;
+        }
+
+        .site-link:hover {
+            color: #4ade80;
+            text-decoration: underline;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: var(--terminal-bg);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-val.danger {
+            color: var(--danger);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        input, textarea {
+            background-color: var(--terminal-bg);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: #000;
+            font-weight: bold;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .terminal-box {
+            background-color: var(--terminal-bg);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            padding: 14px;
+            border-radius: 6px;
+            height: 180px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .log-entry { margin-bottom: 4px; }
+        .log-alert { color: var(--danger); font-weight: bold; }
+        .log-success { color: var(--accent); }
+
+        .footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>⚡ 7-GRID CRYPTANALYSIS CHALLENGE</h1>
+        <p style="color: var(--text-muted); margin: 0 0 8px 0;">Can you crack the Gatekeeper or break the 7-grid shift?</p>
+        <p style="margin: 0;">Return to Main Site: <a class="site-link" href="https://outbacksams.com" target="_blank" rel="noopener noreferrer">outbacksams.com</a></p>
+    </div>
+
+    <!-- CHALLENGE STATS -->
+    <div class="stats-bar">
+        <div>
+            <div>TOTAL ATTEMPTS</div>
+            <div id="stat-attempts" class="stat-val">0</div>
+        </div>
+        <div>
+            <div>INTRUDERS TRAPPED</div>
+            <div id="stat-trapped" class="stat-val danger">0</div>
+        </div>
+        <div>
+            <div>SUCCESSFUL CRACKS</div>
+            <div class="stat-val">0</div>
+        </div>
+    </div>
+
+    <!-- THE CHALLENGE INTERFACE -->
+    <div class="card">
+        <h2>Target Sandbox: Gatekeeper 258</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">
+            Attempt to guess the Gatekeeper passcode or provide a raw cipher payload to attempt decryption.
+        </p>
+
+        <div class="form-group">
+            <label for="passcode-input">Enter Gatekeeper Passcode Key:</label>
+            <input type="number" id="passcode-input" placeholder="e.g. 101, 512, 999...">
+        </div>
+
+        <div class="form-group">
+            <label for="cipher-input">Target Ciphertext String:</label>
+            <input type="text" id="cipher-input" value="S0dWVXNWd1BSR1ZpWVdSMGN3PT0=" readonly>
+        </div>
+
+        <button onclick="attemptHack()">Execute Attack Vector</button>
+    </div>
+
+    <!-- LIVE TERMINAL LOG -->
+    <div class="card">
+        <h2>Console Output & Security Log</h2>
+        <div id="terminal" class="terminal-box">
+            <div class="log-entry">[SYSTEM]: Challenge sandbox initialized. Ready for incoming vectors...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Powered by <a class="site-link" href="https://outbacksams.com" target="_blank" rel="noopener noreferrer">Outback Sams Encryption Engine</a></p>
+    </div>
+</div>
+
+<script>
+    let totalAttempts = 0;
+    let trappedCount = 0;
+
+    // DECOY GATEKEEPER & ENGINE
+    const TARGET_PASSCODE = 258;
+
+    function logToTerminal(msg, isAlert = false, isSuccess = false) {
+        const term = document.getElementById('terminal');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        
+        if (isAlert) entry.className += ' log-alert';
+        if (isSuccess) entry.className += ' log-success';
+
+        const time = new Date().toLocaleTimeString();
+        entry.innerText = `[${time}] ${msg}`;
+        term.appendChild(entry);
+        term.scrollTop = term.scrollHeight;
+    }
+
+    function attemptHack() {
+        const userPass = parseInt(document.getElementById('passcode-input').value);
+        totalAttempts++;
+        document.getElementById('stat-attempts').innerText = totalAttempts;
+
+        if (isNaN(userPass)) {
+            logToTerminal("ERROR: Input empty. Enter a passcode attempt.", true);
+            return;
+        }
+
+        logToTerminal(`Testing Key Payload: ${userPass}...`);
+
+        // GATEKEEPER CHECK
+        if (userPass === TARGET_PASSCODE) {
+            logToTerminal("SUCCESS: Gatekeeper 258 matched!", false, true);
+            logToTerminal("DECOY CIPHER DECRYPTED: 'Test Payload Message Unlocked'", false, true);
+            alert("Congratulations! You passed the sandbox Gatekeeper test.");
+        } else {
+            // INTRUDER TRAP FIRED
+            trappedCount++;
+            document.getElementById('stat-trapped').innerText = trappedCount;
+            
+            logToTerminal(`🚨 ALERT: INVALID KEY (${userPass}) DETECTED!`, true);
+            logToTerminal(`[GATEKEEPER 258]: Access blocked. Attacker quarantined.`, true);
+            logToTerminal(`[LOG]: Record logged to TRAPPED_INTRUDERS array.`, false);
+        }
+    }
+</script>
+
+</body>
+</html>
