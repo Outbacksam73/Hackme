@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Can You Break Seven Grid? - Cryptanalysis Challenge</title>
+    <title>Can You Break The Gatekeeper? - Cryptanalysis Challenge</title>
     <style>
         :root {
             --bg-color: #090d16;
@@ -85,6 +85,18 @@
             color: var(--danger);
         }
 
+        .level-badge {
+            display: inline-block;
+            background: var(--terminal-bg);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
         .form-group {
             margin-bottom: 14px;
             display: flex;
@@ -153,8 +165,8 @@
 
 <div class="container">
     <div class="header">
-        <h1>⚡ CAN YOU BREAK SEVEN GRID?</h1>
-        <p style="color: var(--text-muted); margin: 0 0 8px 0;">Attempt to bypass the Gatekeeper or crack the matrix shift.</p>
+        <h1>⚡ CAN YOU BREAK THE GATEKEEPER?</h1>
+        <p style="color: var(--text-muted); margin: 0 0 8px 0;">Attempt to bypass multi-layer security protocols.</p>
         <p style="margin: 0;">Return to Main Site: <a class="site-link" href="https://outbacksams.com" target="_blank" rel="noopener noreferrer">outbacksams.com</a></p>
     </div>
 
@@ -169,21 +181,22 @@
             <div id="stat-trapped" class="stat-val danger">0</div>
         </div>
         <div>
-            <div>SUCCESSFUL CRACKS</div>
-            <div class="stat-val">0</div>
+            <div>LEVEL CLEARED</div>
+            <div id="stat-level" class="stat-val">0 / 3</div>
         </div>
     </div>
 
     <!-- THE CHALLENGE INTERFACE -->
     <div class="card">
-        <h2>Target Sandbox: Gatekeeper 258</h2>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">
-            Attempt to guess the Gatekeeper passcode or provide a raw cipher payload to attempt decryption.
+        <div id="level-indicator" class="level-badge">SECURITY LEVEL 1 OF 3</div>
+        <h2 id="target-title">Target Sandbox: Gatekeeper Protocol ALPHA</h2>
+        <p id="target-desc" style="color: var(--text-muted); font-size: 0.85rem;">
+            Attempt to guess the Gatekeeper passcode or crack the cipher payload for Level 1.
         </p>
 
         <div class="form-group">
             <label for="passcode-input">Enter Gatekeeper Passcode Key:</label>
-            <input type="number" id="passcode-input" placeholder="e.g. 101, 512, 999...">
+            <input type="number" id="passcode-input" placeholder="Enter secret passcode...">
         </div>
 
         <div class="form-group">
@@ -191,28 +204,51 @@
             <input type="text" id="cipher-input" value="S0dWVXNWd1BSR1ZpWVdSMGN3PT0=" readonly>
         </div>
 
-        <button onclick="attemptHack()">Execute Attack Vector</button>
+        <button id="attack-btn" onclick="attemptHack()">Execute Attack Vector</button>
     </div>
 
     <!-- LIVE TERMINAL LOG -->
     <div class="card">
         <h2>Console Output & Security Log</h2>
         <div id="terminal" class="terminal-box">
-            <div class="log-entry">[SYSTEM]: Challenge sandbox initialized. Ready for incoming vectors...</div>
+            <div class="log-entry">[SYSTEM]: Security Sandbox Level 1 initialized. Awaiting input...</div>
         </div>
     </div>
 
     <div class="footer">
-        <p>Powered by <a class="site-link" href="https://outbacksams.com" target="_blank" rel="noopener noreferrer">Outback Sams Seven Grid Engine</a></p>
+        <p>Powered by <a class="site-link" href="https://outbacksams.com" target="_blank" rel="noopener noreferrer">Outback Sams Security Engine</a></p>
     </div>
 </div>
 
 <script>
     let totalAttempts = 0;
     let trappedCount = 0;
+    let currentLevel = 0;
 
-    // DECOY GATEKEEPER & ENGINE
-    const TARGET_PASSCODE = 258;
+    // CONFIGURABLE LEVELS: Set your passcodes and ciphers here
+    const LEVELS = [
+        {
+            passcode: 101, // Code for Level 1
+            title: "Target Sandbox: Gatekeeper Protocol ALPHA",
+            desc: "Level 1 Gateway. Enter passcode key to breach initial access.",
+            cipher: "S0dWVXNWd1BSR1ZpWVdSMGN3PT0=",
+            successMsg: "LEVEL 1 BREACHED: Cipher ALPHA Decrypted!"
+        },
+        {
+            passcode: 512, // Code for Level 2
+            title: "Target Sandbox: Gatekeeper Protocol BETA",
+            desc: "Level 2 Firewall. Secondary authentication barrier engaged.",
+            cipher: "RkZJTkFMX1NFQ1VSSVRZX1BBU1M=",
+            successMsg: "LEVEL 2 BREACHED: Secondary Firewall Offline!"
+        },
+        {
+            passcode: 999, // Code for Level 3
+            title: "Target Sandbox: Gatekeeper Core OMEGA",
+            desc: "Level 3 Master Vault. Final encryption layer active.",
+            cipher: "TUFTVEVSX1NZU1RFTV9VTkxPQ0tFRA==",
+            successMsg: "SYSTEM OVERRIDE COMPLETE: ALL LEVELS BREACHED!"
+        }
+    ];
 
     function logToTerminal(msg, isAlert = false, isSuccess = false) {
         const term = document.getElementById('terminal');
@@ -229,6 +265,11 @@
     }
 
     function attemptHack() {
+        if (currentLevel >= LEVELS.length) {
+            logToTerminal("SYSTEM ALREADY FULLY BREACHED. NO FURTHER TARGETS.", false, true);
+            return;
+        }
+
         const userPass = parseInt(document.getElementById('passcode-input').value);
         totalAttempts++;
         document.getElementById('stat-attempts').innerText = totalAttempts;
@@ -238,25 +279,49 @@
             return;
         }
 
-        logToTerminal(`Testing Key Payload: ${userPass}...`);
+        const targetLevel = LEVELS[currentLevel];
+        logToTerminal(`[L${currentLevel + 1}] Testing Key Payload: ${userPass}...`);
 
-        // GATEKEEPER CHECK
-        if (userPass === TARGET_PASSCODE) {
-            logToTerminal("SUCCESS: Gatekeeper 258 matched!", false, true);
-            logToTerminal("DECOY CIPHER DECRYPTED: 'Test Payload Message Unlocked'", false, true);
-            alert("Congratulations! You passed the sandbox Gatekeeper test.");
+        // GATEKEEPER CHECK FOR CURRENT LEVEL
+        if (userPass === targetLevel.passcode) {
+            currentLevel++;
+            document.getElementById('stat-level').innerText = `${currentLevel} / ${LEVELS.length}`;
+            logToTerminal(`SUCCESS: ${targetLevel.successMsg}`, false, true);
+
+            if (currentLevel < LEVELS.length) {
+                // LOAD NEXT LEVEL
+                const nextLevel = LEVELS[currentLevel];
+                document.getElementById('level-indicator').innerText = `SECURITY LEVEL ${currentLevel + 1} OF ${LEVELS.length}`;
+                document.getElementById('target-title').innerText = nextLevel.title;
+                document.getElementById('target-desc').innerText = nextLevel.desc;
+                document.getElementById('cipher-input').value = nextLevel.cipher;
+                document.getElementById('passcode-input').value = '';
+
+                logToTerminal(`[SYSTEM]: Escalating to Level ${currentLevel + 1}. Security complexity increased.`);
+                alert(`Level ${currentLevel} cleared! Escalating to Level ${currentLevel + 1}...`);
+            } else {
+                // ALL LEVELS CLEARED
+                document.getElementById('level-indicator').innerText = "SYSTEM FULLY BREACHED";
+                document.getElementById('level-indicator').style.borderColor = "#22c55e";
+                document.getElementById('passcode-input').disabled = true;
+                document.getElementById('attack-btn').disabled = true;
+                document.getElementById('attack-btn').innerText = "SYSTEM UNLOCKED";
+
+                logToTerminal("🏆 CONGRATULATIONS: You have breached all Gatekeeper protocols!", false, true);
+                alert("CONGRATULATIONS! You have successfully cleared all security levels!");
+            }
         } else {
             // INTRUDER TRAP FIRED
             trappedCount++;
             document.getElementById('stat-trapped').innerText = trappedCount;
             
-            logToTerminal(`🚨 ALERT: INVALID KEY (${userPass}) DETECTED!`, true);
-            logToTerminal(`[GATEKEEPER 258]: Access blocked. Attacker quarantined.`, true);
-            logToTerminal(`[LOG]: Record logged to TRAPPED_INTRUDERS array.`, false);
+            logToTerminal(`🚨 ALERT: INVALID KEY (${userPass}) DETECTED AT LEVEL ${currentLevel + 1}!`, true);
+            logToTerminal(`[GATEKEEPER]: Access blocked. Attacker quarantined.`, true);
         }
     }
 </script>
 
 </body>
 </html>
+
 
